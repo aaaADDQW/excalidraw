@@ -1,0 +1,22 @@
+#!/bin/bash
+# Pre-removal script for Excalidraw (TOS 7 deb single-package mode)
+# Per TOS 7 §8.14: stop the service before removal; on upgrade keep the unit
+# so postinst can re-enable it.
+set -e
+
+APPID="excalidraw"
+SYSTEM_ID="excalidraw"
+
+case "$1" in
+    remove|upgrade|deconfigure)
+        systemctl stop "${SYSTEM_ID}.service" 2>/dev/null || true
+        if [ "$1" != "upgrade" ]; then
+            systemctl disable "${SYSTEM_ID}.service" 2>/dev/null || true
+        fi
+        rm -f "/var/api/${APPID}.sock" 2>/dev/null || true
+        ;;
+    failed-upgrade)
+        ;;
+esac
+
+exit 0

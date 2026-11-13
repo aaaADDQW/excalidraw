@@ -1,0 +1,23 @@
+# Build artifacts
+dist/
+build/
+*.deb
+
+# Generated front-end archive / unpacked UI (produced by build.sh)
+pkg/usr/local/excalidraw/webui.bz2
+/pkg/usr/local/excalidraw/webui/
+
+# Excalidraw upstream checkout (cloned by build.sh)
+/excalidraw/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/

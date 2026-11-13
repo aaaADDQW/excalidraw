@@ -1,0 +1,118 @@
+#!/bin/bash
+# Post-installation script for Excalidraw (TOS 7 deb single-package mode)
+# Conforms to TOS 7 Application Development Guide §8.14.
+#
+# $1 = "configure" (fresh install and upgrade)
+# $2 = previously installed version (empty on fresh install)
+set -e
+
+APPID="excalidraw"
+APP_DIR="/usr/local/${APPID}"
+SYSTEM_ID="excalidraw"
+LOG_DIR="${APP_DIR}/logs"
+DIAG_FILE="${LOG_DIR}/postinst-diagnostic.txt"
+
+log() {
+    printf '[%s] %s %s\n' "${APPID}" "$1" "$2"
+}
+
+collect_diagnostics() {
+    reason="$1"
+    mkdir -p "${LOG_DIR}" 2>/dev/null || true
+    {
+        echo "reason: ${reason}"
+        echo "app: ${APPID}"
+        echo "systemd unit: ${SYSTEM_ID}.service"
+        echo ""
+        echo "=== identity ==="
+        id "${APPID}" 2>&1 || echo "user ${APPID} does not exist (217/USER)"
+        echo ""
+        echo "=== runtime prerequisites ==="
+        ls -l /usr/bin/python3 2>&1 || echo "/usr/bin/python3 missing (203/EXEC)"
+        ls -l "${APP_DIR}/bin/${APPID}" 2>&1 || echo "launcher missing (203/EXEC)"
+        ls -ld "${APP_DIR}/webui" 2>&1 || echo "webui dir missing"
+        echo ""
+        echo "=== unit state ==="
+        systemctl is-active "${SYSTEM_ID}.service" 2>&1 || true
+        systemctl status --no-pager -l "${SYSTEM_ID}.service" 2>&1 || true
+        echo ""
+        echo "=== recent service logs ==="
+        journalctl --no-pager -n 120 -u "${SYSTEM_ID}.service" 2>&1 || true
+        echo ""
+        echo "=== socket ==="
+        ls -l "/var/api/${APPID}.sock" 2>&1 || echo "socket absent"
+        ls -ld /var/api 2>&1 || true
+    } > "${DIAG_FILE}" 2>&1 || true
+    chown "${APPID}:${APPID}" "${DIAG_FILE}" 2>/dev/null || true
+    chmod 0640 "${DIAG_FILE}" 2>/dev/null || true
+    log ERROR "${reason}"
+    log ERROR "Diagnostics saved to ${DIAG_FILE}"
+}
+
+case "$1" in
+    configure)
+        if [ -n "$2" ]; then
+            log INFO "upgrading from version $2"
+            # Never delete user data on upgrade (§4.3).
+        else
+            log INFO "fresh install"
+        fi
+
+        # Create the dedicated user and group if the platform has not already done so.
+        if ! id -u "${APPID}" > /dev/null 2>&1; then
+            useradd --system --no-create-home --shell /usr/sbin/nologin "${APPID}" 2>/dev/null || true
+        fi
+        # §8.12 expects Group=<appid>; create a matching group when absent so
+        # systemd does not fail with status=216/GROUP.
+        if ! getent group "${APPID}" > /dev/null 2>&1; then
+            groupadd --system "${APPID}" 2>/dev/null || true
+        fi
+
+        # Data and log directories live inside the application directory (§4.7).
+        mkdir -p "${APP_DIR}/data" "${APP_DIR}/logs" 2>/dev/null || true
+
+        # Decompress the Web UI next to the app (webui.bz2 keeps no wrapper dir).
+        if [ -f "${APP_DIR}/webui.bz2" ] && command -v tar > /dev/null 2>&1; then
+            mkdir -p "${APP_DIR}/webui"
+            if tar -xjf "${APP_DIR}/webui.bz2" -C "${APP_DIR}/webui" 2>&1; then
+                log INFO "webui extracted"
+            else
+                log ERROR "webui.bz2 could not be extracted (stale or corrupt archive)"
+            fi
+        else
+            log ERROR "webui.bz2 missing: ${APP_DIR}/webui.bz2"
+        fi
+
+        # /var/api is a platform-owned shared dir (1777 sticky). Never re-own it.
+        if [ ! -d /var/api ]; then
+            mkdir -p /var/api 2>/dev/null || true
+            chmod 1777 /var/api 2>/dev/null || true
+        fi
+
+        # Ownership: everything under the app dir belongs to the run user.
+        if id -u "${APPID}" > /dev/null 2>&1; then
+            chown -R "${APPID}:${APPID}" "${APP_DIR}" 2>/dev/null || true
+        fi
+        chmod 0755 "${APP_DIR}/bin/${APPID}" 2>/dev/null || true
+
+        # Service management. Both steps are idempotent and run on install+upgrade.
+        systemctl daemon-reload 2>/dev/null || true
+        systemctl enable "${SYSTEM_ID}.service" 2>/dev/null || true
+        if systemctl start "${SYSTEM_ID}.service" 2>/dev/null; then
+            log INFO "service ${SYSTEM_ID} started"
+        else
+            collect_diagnostics "systemctl start ${SYSTEM_ID} failed"
+        fi
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument '$1'" >&2
+        exit 1
+        ;;
+esac
+
+echo "${APPID} installed successfully."
+exit 0

@@ -1,0 +1,13 @@
+Package: excalidraw
+Version: 1.0.0
+Architecture: amd64
+Section: utils
+Priority: optional
+Maintainer: TerraMasterCommunity <community@localhost>
+Depends: python3 (>= 3.10), systemd
+Description: Excalidraw whiteboard for TOS
+ Excalidraw is a virtual whiteboard for sketching hand-drawn
+ like diagrams, flowcharts and ideas. This package bundles the
+ official Excalidraw web build and serves it inside the TOS
+ desktop over a local Unix socket, so drawings never leave the
+ NAS.

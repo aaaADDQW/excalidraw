@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""TOS app entry point for Excalidraw.
+
+Platform contract (TOS 7 §8.7.1):
+  - Executable lives at /usr/local/<appid>/bin/<binary_name>
+  - Backend listens on the Unix socket /var/api/<appid>.sock (HTTP over UDS)
+  - /var/api is created on demand; stale socket is removed before bind
+"""
+
+import os
+import sys
+
+APP_ROOT = os.environ.get("APP_ROOT", "/usr/local/excalidraw")
+sys.path.insert(0, os.path.join(APP_ROOT, "lib"))
+
+from excalidraw_tos.server import main  # noqa: E402
+
+raise SystemExit(main())

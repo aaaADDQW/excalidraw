@@ -1,0 +1,27 @@
+[zh-cn]
+name = "Excalidraw 白板"
+auth = "TerraMaster Community"
+descript = "手绘风格白板，用于绘制示意图、流程图和随手涂鸦。所有绘图数据都保存在本机 NAS 上，不对外发送。"
+release_note = "1.0.0：首个版本，基于 Excalidraw 官方 Web 构建打包，支持绘图、导出 PNG/SVG、深色模式，可离线使用。"
+important = "绘图内容保存在浏览器本地存储中，清除浏览器数据会丢失，重要内容请及时导出为文件。"
+
+[zh-hk]
+name = "Excalidraw 白板"
+auth = "TerraMaster Community"
+descript = "手繪風格白板，用於繪製示意圖、流程圖和隨手塗鴉。所有繪圖資料都保存在本機 NAS 上，不對外傳送。"
+release_note = "1.0.0：首個版本，基於 Excalidraw 官方 Web 建置打包，支援繪圖、匯出 PNG/SVG、深色模式，可離線使用。"
+important = "繪圖內容保存在瀏覽器本地儲存中，清除瀏覽器資料會遺失，重要內容請及時匯出為檔案。"
+
+[en-us]
+name = "Excalidraw"
+auth = "TerraMaster Community"
+descript = "Hand-drawn style whiteboard for sketching diagrams, flowcharts and ideas. All drawings stay on your NAS and are never sent out."
+release_note = "1.0.0: first release, packaged from the official Excalidraw web build. Supports drawing, PNG/SVG export and dark mode; works fully offline."
+important = "Drawings are kept in browser local storage. Clearing browser data will remove them, so export important work to a file."
+
+[fr-fr]
+name = "Excalidraw"
+auth = "TerraMaster Community"
+descript = "Tableau blanc au style dessine a la main pour schemas, organigrammes et idees. Tous les dessins restent sur votre NAS."
+release_note = "1.0.0 : premiere version, construite a partir du build web officiel d'Excalidraw. Dessin, export PNG/SVG et mode sombre, fonctionne hors ligne."
+important = "Les dessins sont conserves dans le stockage local du navigateur. Effacer les donnees du navigateur les supprime ; exportez les travaux importants."

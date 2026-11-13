@@ -1,0 +1,43 @@
+[Unit]
+Description=Excalidraw Whiteboard for TOS
+After=network.target
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+User=excalidraw
+Group=excalidraw
+WorkingDirectory=/usr/local/excalidraw
+ExecStart=/usr/local/excalidraw/bin/excalidraw
+EnvironmentFile=-/usr/local/excalidraw/excalidraw.env
+TimeoutStartSec=30
+TimeoutStopSec=10
+
+# Security hardening (per TOS 7 Chapter 8.12)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+MemoryDenyWriteExecute=true
+LockPersonality=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+SystemCallArchitectures=native
+
+# Read-write paths: application data/logs plus the platform socket dir
+ReadWritePaths=/usr/local/excalidraw/data /usr/local/excalidraw/logs /var/api
+
+# Resource limits
+LimitNOFILE=65536
+
+# NOTE: the restart policy directives are deliberately absent here.
+# TOS 7 §8.7.1 / §8.12 require the platform to own service restart policy.
+
+[Install]
+WantedBy=multi-user.target

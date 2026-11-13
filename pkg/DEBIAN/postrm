@@ -1,0 +1,36 @@
+#!/bin/bash
+# Post-removal script for Excalidraw (TOS 7 deb single-package mode)
+# Per TOS 7 §4.7: user business data is never auto-deleted; runtime data under
+# data/ and logs/ is only removed on explicit purge.
+set -e
+
+APPID="excalidraw"
+SYSTEM_ID="excalidraw"
+APP_DIR="/usr/local/${APPID}"
+
+case "$1" in
+    remove)
+        # Keep the application directory (data/logs) on plain removal.
+        ;;
+    purge)
+        systemctl stop "${SYSTEM_ID}.service" 2>/dev/null || true
+        systemctl disable "${SYSTEM_ID}.service" 2>/dev/null || true
+        rm -f "/var/api/${APPID}.sock" 2>/dev/null || true
+        rm -rf "${APP_DIR}" 2>/dev/null || true
+        if id -u "${APPID}" > /dev/null 2>&1; then
+            userdel "${APPID}" 2>/dev/null || true
+        fi
+        if getent group "${APPID}" > /dev/null 2>&1; then
+            groupdel "${APPID}" 2>/dev/null || true
+        fi
+        systemctl daemon-reload 2>/dev/null || true
+        ;;
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+    *)
+        echo "postrm called with unknown argument '$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
